@@ -191,9 +191,9 @@ ERRORS stackOK (const Stack* st, long long hash_data, long long hash_capacity, l
     }
 
     if (DEBUG_LEVEL == 3) {
-        if (TEMPLATE_HASH(Hash, int) (st->data) != hash_data) return DATA_HASH_ERROR;
-        if (TEMPLATE_HASH(Hash, size_t) (&st->capacity) != hash_capacity) return CAPACITY_HASH_ERROR;
-        if (TEMPLATE_HASH(Hash, size_t) (&st->Size) != hash_size) return SIZE_HASH_ERROR;
+        if (calc_hash_int (st->data) != hash_data) return DATA_HASH_ERROR;
+        if (calc_hash_size_t (&st->capacity) != hash_capacity) return CAPACITY_HASH_ERROR;
+        if (calc_hash_size_t (&st->Size) != hash_size) return SIZE_HASH_ERROR;
     }
 
     return NO_ERRORS;
@@ -211,4 +211,38 @@ void prinStack (const Stack* st)
     }
 
     printf ("%ld --- %ld\n", st->Size, st->capacity);
+}
+
+
+//-----------------------------------------------------------------------------
+
+
+long long calc_hash_int (const int *val)  
+{            
+    const int ret_size = 32;
+    long long ret = 0x555555;
+    const int per_char = 7;
+
+    while (*val)
+    {
+        ret ^=*val++;
+        ret = ((ret << per_char) | (ret >> (ret_size -per_char)));
+    }
+
+    return ret;  
+}
+
+long long calc_hash_size_t (const size_t *val)  
+{            
+    const int ret_size = 32;
+    long long ret = 0x555555;
+    const int per_char = 7;
+
+    while (*val)
+    {
+        ret ^=*val++;
+        ret = ((ret << per_char) | (ret >> (ret_size -per_char)));
+    }
+
+    return ret;  
 }

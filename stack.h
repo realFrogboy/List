@@ -6,7 +6,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
-#include "all_hashs.h"
 
 #ifndef CHECK_STACK
 #define CHECK_STACK do{                                                                                                                                             \
@@ -27,7 +26,7 @@
                             "Received values: %lld               %lld                %lld              %lld               %lld       %lld           %lld\n",        \
                             CANARY, CANARY, CANARY, CANARY, hash_data, hash_capacity, hash_size,                                                                    \
                             st->leftCanary, st->rightCanary, *(canary_t*)(st->data - 1), *(canary_t*)(st->data + st->capacity + 1),                                 \
-                            TEMPLATE_HASH(Hash, int) (st->data), TEMPLATE_HASH(Hash, size_t) (&st->capacity), TEMPLATE_HASH(Hash, size_t) (&st->Size));             \
+                            calc_hash_int (st->data), calc_hash_size_t (&st->capacity), calc_hash_size_t (&st->Size));                                                               \
                     /*abort ();*/                                                                                                                                   \
                 }                                                                                                                                                   \
             } while (0)
@@ -47,10 +46,10 @@
 #endif
 
 #ifndef CALC_HASH
-#define CALC_HASH   do {                                                                \
-                        hash_data = TEMPLATE_HASH(Hash, int) (st->data);                \
-                        hash_capacity = TEMPLATE_HASH(Hash, size_t) (&st->capacity);    \
-                        hash_size = TEMPLATE_HASH(Hash, size_t) (&st->Size);            \
+#define CALC_HASH   do {                                                     \
+                        hash_data = calc_hash_int (st->data);                \
+                        hash_capacity = calc_hash_size_t (&st->capacity);    \
+                        hash_size = calc_hash_size_t (&st->Size);            \
                     } while (0)
 #endif
 
@@ -101,10 +100,13 @@ ERRORS stackCtor (Stack* st);
 ERRORS stackPush (Stack* st, int value);
 ERRORS stackPop (Stack* st); 
 ERRORS stackDtor (Stack* st);
-ERRORS printStack(const Stack* st);
 ERRORS reallocate (Stack* st, size_t newSize);
+
 void stackDump (int error);
 void prinStack (const Stack* st);
 ERRORS stackOK (const Stack* st, long long hash_data, long long hash_capacity, long long hash_size);
+
+long long calc_hash_int (const int *val);
+long long calc_hash_size_t (const size_t *val);
 
 #endif

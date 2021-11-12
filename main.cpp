@@ -18,7 +18,7 @@ int main() {
     ins_at_the_end(&list, 110);
     ins_at_the_end(&list, 120);
 
-    del_elem(&list, 1);
+    del_elem(&list, 5);
 
     ins_at_the_beg(&list, 3.141);
 
@@ -30,8 +30,8 @@ int main() {
     sort_list_by_prev_slow_slow(&list);
     print_list(&list);
 
-    size_t ret = search_elem_slow_slow(&list, 170);
-    printf("%ld\n", ret);
+    size_t ret = search_elem_slow_slow(&list, 150);
+    printf("%5ld --- SEARCHED ELEM\n", ret);
 
     list_dtor(&list);
 

@@ -1,5 +1,8 @@
 #include "list.h"
 
+//-----------------------------------------------------------------------------
+
+
 List list_ctor()
 {
     struct List strc;
@@ -173,14 +176,10 @@ void del_elem(List *strc, size_t elem)
     ASSERT((elem <= 0) || (strc->arr[elem].next == -1), "Incorrect element");
 
     if (elem == strc->head)
-    {
         strc->head = strc->arr[elem].next;
-    }
 
     if (elem == strc->tail)
-    {
         strc->tail = strc->arr[elem].prev;
-    }
 
     size_t next_of_elem = strc->arr[elem].next;
     size_t prev_of_elem = strc->arr[elem].prev;
@@ -196,6 +195,16 @@ void del_elem(List *strc, size_t elem)
     strc->num_of_free_elem++;
 }
 
+void del_ALL_elem(List *strc) {
+    ASSERT(strc == NULL, "Void ptr");
+
+    for (unsigned idx = 0; idx <= strc->capacity; idx++) {
+        strc->arr[idx].data = 0;
+        strc->arr[idx].next = -1;
+        strc->arr[idx].prev = -1;         
+    }
+}
+
 
 //-----------------------------------------------------------------------------
 
@@ -209,15 +218,14 @@ void print_list(List *strc)
 
     printf("\n   --- DATA  --- NEXT  --- PREV  ---\n");
 
-    for (unsigned num = 0; num <= strc->capacity; num++)
-    {
+    for (unsigned num = 0; num <= strc->capacity; num++) {
         printf("%3d--- %5.1f --- %5d --- %5d ---\n", num, strc->arr[num].data, strc->arr[num].next, strc->arr[num].prev);
     }
 
     printf("\n--- STACK OF FREE ELEM ---\n");
     prinStack(&strc->free_elem);
 
-    printf("%ld --- NUM OF FREE ELEM\n", strc->num_of_free_elem);
+    printf("%5ld --- NUM OF FREE ELEM\n", strc->num_of_free_elem);
 }
 
 
@@ -284,7 +292,7 @@ size_t search_elem_slow_slow(List *strc, double val) {
         if (isequal(strc->arr[num].data, val))
             return num;
     }
-    
+
     ASSERT(1, "There is no such number in the list");
     return 404;    
 }

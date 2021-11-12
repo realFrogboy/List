@@ -58,6 +58,7 @@ void ins_before(List *strc, size_t elem, double val);
 void ins_after(List *strc, size_t elem, double val);
 
 void del_elem(List *strc, size_t elem);
+void del_ALL_elem(List *strc);
 
 void realloc_list(List *strc);
 
