@@ -9,7 +9,7 @@ ERRORS stackCtor (Stack* st)
     st->capacity = START_STACK_SIZE; 
     st->Size = 0;
 
-    st->data = (int*) calloc (st->capacity + 4, sizeof (int));
+    st->data = (double*) calloc (st->capacity + 2, sizeof (double));
     ERROR_INFO(st->data == NULL, "ERROR: Can't alloc memory\n");
 
     st->data++;
@@ -27,15 +27,16 @@ ERRORS stackCtor (Stack* st)
 //-----------------------------------------------------------------------------
 
 
-ERRORS stackPush (Stack* st, int value)
+ERRORS stackPush (Stack* st, double value)
 {
     CHECK_STACK;
 
     if (st->Size >= st->capacity)
         reallocate (st, st->capacity * RESIZE_COEFFICIENT);
 
-    st->Size++;
     *(st->data + st->Size) = value;
+    
+    st->Size++;
 
     CHECK_STACK;
 
@@ -56,6 +57,7 @@ ERRORS stackPop (Stack* st)
     st->data[st->Size] = POISON;
     
     --st->Size;
+    PUT_CANARY;
 
     CHECK_STACK;
 
@@ -87,7 +89,7 @@ ERRORS reallocate (Stack* st, const size_t newSize) //static
     st->capacity = newSize;
     st->data--;
 
-    int *tmp = (int*) realloc (st->data, (st->capacity + 4) * sizeof(int));
+    double *tmp = (double*) realloc (st->data, (st->capacity + 2) * sizeof(double));
     if (tmp != NULL)
     {   
         st->data = tmp;
@@ -185,13 +187,13 @@ ERRORS stackOK (const Stack* st, long long hash_data, long long hash_capacity, l
     if ((DEBUG_LEVEL == 2) || (DEBUG_LEVEL == 3))
     {
         if (*(canary_t*)(st->data - 1) != CANARY) return DATA_CANARY_LEFT_ERROR;                 
-        if (*(canary_t*)(st->data + st->capacity + 1) != CANARY) return DATA_CANARY_RIGHT_ERROR; 
+        if (*(canary_t*)(st->data + st->capacity) != CANARY) return DATA_CANARY_RIGHT_ERROR; 
         if (st->leftCanary != CANARY) return STACK_CANARY_LEFT_ERROR;             
         if (st->rightCanary != CANARY) return STACK_CANARY_RIGHT_ERROR;
     }
 
     if (DEBUG_LEVEL == 3) {
-        if (calc_hash_int (st->data) != hash_data) return DATA_HASH_ERROR;
+        if (calc_hash_double (st->data) != hash_data) return DATA_HASH_ERROR;
         if (calc_hash_size_t (&st->capacity) != hash_capacity) return CAPACITY_HASH_ERROR;
         if (calc_hash_size_t (&st->Size) != hash_size) return SIZE_HASH_ERROR;
     }
@@ -205,9 +207,9 @@ ERRORS stackOK (const Stack* st, long long hash_data, long long hash_capacity, l
 
 void prinStack (const Stack* st)
 {
-    for (unsigned num = 0; num <= st->Size; num++)
+    for (unsigned num = 0; num < st->Size; num++)
     {
-        printf ("%d\n", *(st->data + num));
+        printf ("%f\n", *(st->data + num));
     }
 
     printf ("%ld --- %ld\n", st->Size, st->capacity);
@@ -217,7 +219,7 @@ void prinStack (const Stack* st)
 //-----------------------------------------------------------------------------
 
 
-long long calc_hash_int (const int *val)  
+long long calc_hash_double (const double *val)  
 {            
     const int ret_size = 32;
     long long ret = 0x555555;
@@ -225,7 +227,7 @@ long long calc_hash_int (const int *val)
 
     while (*val)
     {
-        ret ^=*val++;
+        ret ^=*(int*)val++;
         ret = ((ret << per_char) | (ret >> (ret_size -per_char)));
     }
 
