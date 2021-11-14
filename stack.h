@@ -25,8 +25,8 @@
                             "Expexted values: %lld               %lld                %lld              %lld               %lld       %lld           %lld\n"         \
                             "Received values: %lld               %lld                %lld              %lld               %lld       %lld           %lld\n",        \
                             CANARY, CANARY, CANARY, CANARY, hash_data, hash_capacity, hash_size,                                                                    \
-                            st->leftCanary, st->rightCanary, *(canary_t*)(st->data - 1), *(canary_t*)(st->data + st->capacity + 1),                                 \
-                            calc_hash_int (st->data), calc_hash_size_t (&st->capacity), calc_hash_size_t (&st->Size));                                                               \
+                            st->leftCanary, st->rightCanary, *(canary_t*)(st->data - 1), *(canary_t*)(st->data + st->capacity),                                 \
+                            calc_hash_double (st->data), calc_hash_size_t (&st->capacity), calc_hash_size_t (&st->Size));                                                               \
                     /*abort ();*/                                                                                                                                   \
                 }                                                                                                                                                   \
             } while (0)
@@ -42,12 +42,12 @@
 #endif
 
 #ifndef PUT_CANARY
-#define PUT_CANARY *(canary_t*)(st->data - 1) = CANARY; *(canary_t*)(st->data + st->capacity + 1) = CANARY;
+#define PUT_CANARY *(canary_t*)(st->data - 1) = CANARY; *(canary_t*)(st->data + st->capacity) = CANARY;
 #endif
 
 #ifndef CALC_HASH
 #define CALC_HASH   do {                                                     \
-                        hash_data = calc_hash_int (st->data);                \
+                        hash_data = calc_hash_double (st->data);             \
                         hash_capacity = calc_hash_size_t (&st->capacity);    \
                         hash_size = calc_hash_size_t (&st->Size);            \
                     } while (0)
@@ -80,7 +80,7 @@ const canary_t CANARY        = 0xBADDCAFE;
 const int START_STACK_SIZE   = 4;
 const int RESIZE_COEFFICIENT = 2;
 
-const int POISON             = 0xDEADBEEF;
+const double POISON          = 0xDEADBEEF;
 
 
 struct Stack
@@ -88,7 +88,7 @@ struct Stack
 
     canary_t leftCanary;
 
-    int *data;
+    double *data;
     size_t capacity;
     size_t Size;
 
@@ -97,7 +97,7 @@ struct Stack
 
 
 ERRORS stackCtor (Stack* st);
-ERRORS stackPush (Stack* st, int value);
+ERRORS stackPush (Stack* st, double value);
 ERRORS stackPop (Stack* st); 
 ERRORS stackDtor (Stack* st);
 ERRORS reallocate (Stack* st, size_t newSize);
@@ -106,7 +106,7 @@ void stackDump (int error);
 void prinStack (const Stack* st);
 ERRORS stackOK (const Stack* st, long long hash_data, long long hash_capacity, long long hash_size);
 
-long long calc_hash_int (const int *val);
+long long calc_hash_double (const double *val);
 long long calc_hash_size_t (const size_t *val);
 
 #endif

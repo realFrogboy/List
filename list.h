@@ -10,8 +10,8 @@
 #endif
 
 #ifndef GET_IDX_OF_FREE_ELEM
-#define GET_IDX_OF_FREE_ELEM    int idx = strc->free_elem.data[strc->free_elem.Size]; \
-                                stackPop(&strc->free_elem);                           \
+#define GET_IDX_OF_FREE_ELEM    int idx = strc->free_elem.data[strc->free_elem.Size - 1]; \
+                                stackPop(&strc->free_elem);                               \
                                 strc->num_of_free_elem--;                             
 #endif
 
@@ -24,6 +24,21 @@
                                 } while (0)
 #endif
 
+#ifndef CALC_LIST_HASH
+#define CALC_LIST_HASH  strc->arr_hash = calc_hash_arr(strc->arr);  \
+                        strc->list_hash = list_hash(strc);
+#endif
+
+#ifndef CHECK_LIST
+#define CHECK_LIST do {                                                                                         \
+                        int error = listOK(strc);                                                               \
+                        if (error){                                                                             \
+                            printf (" %s:%d, IN FUNCTION %s:\n.", __FILE__, __LINE__, __PRETTY_FUNCTION__);     \
+                            list_dump(strc, error);                                                             \
+                        }                                                                                       \
+                    } while(0);
+#endif
+
 struct Arr {
     double data;
     int next;
@@ -31,12 +46,30 @@ struct Arr {
 };
 
 struct List {
+    canary_t list_left_canary;
+
     struct Arr *arr;
     struct Stack free_elem;
     size_t num_of_free_elem;
     size_t head;
     size_t tail;
     size_t capacity;
+
+    unsigned long long list_hash;
+    unsigned long long arr_hash;
+
+    canary_t list_right_canary;
+};
+
+enum LIST_ERRORS{
+    NO_LIST_ERRORS          = 0,
+    VOID_LIST               = 20102,
+    LIST_CANARY_LEFT_ERROR  = 20202,
+    LIST_CANARY_RIGHT_ERROR = 20302,
+    ARR_CANARY_LEFT_ERROR   = 20402,
+    ARR_CANARY_RIGHT_ERROR  = 20502,
+    ARR_HASH_ERROR          = 20602,
+    LIST_HASH_ERROR         = 20702
 };
 
 const int size_of_list = 10;
@@ -69,5 +102,11 @@ size_t search_elem_slow_slow(List *strc, double val);
 bool isequal(double a, double b);
 
 void print_list(List *strc);
+int listOK(List *strc);
+void list_dump(List *strc, int error);
+
+unsigned long long calc_hash_arr (const Arr *val);
+unsigned long long calc_hash_size_t_l (const size_t *val);
+unsigned long long list_hash (List *strc);
 
 #endif

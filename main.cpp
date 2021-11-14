@@ -1,11 +1,17 @@
 #include "list.h"
+#include "list_unit_test.h"
+
 int DEBUG_LEVEL = 3; // for stack
 
-int main() {
+int main(){
     struct List list;
     list = list_ctor();
 
+    print_list(&list);
+
     ins_at_the_end(&list, 10);
+    print_list(&list);
+
     ins_at_the_end(&list, 20);
     ins_at_the_end(&list, 30);
     ins_at_the_end(&list, 40);
@@ -15,23 +21,15 @@ int main() {
     ins_at_the_end(&list, 80);
     ins_at_the_end(&list, 90);
     ins_at_the_end(&list, 100);
+
+    print_list(&list);
+
     ins_at_the_end(&list, 110);
     ins_at_the_end(&list, 120);
 
-    del_elem(&list, 5);
-
-    ins_at_the_beg(&list, 3.141);
-
-    ins_after(&list, 3, 200);
-    ins_before(&list, 10, 150);
-
     print_list(&list);
 
-    sort_list_by_prev_slow_slow(&list);
-    print_list(&list);
-
-    size_t ret = search_elem_slow_slow(&list, 150);
-    printf("%5ld --- SEARCHED ELEM\n", ret);
+    list_unit_test(list);
 
     list_dtor(&list);
 
