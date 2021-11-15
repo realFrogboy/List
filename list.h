@@ -25,8 +25,11 @@
 #endif
 
 #ifndef CALC_LIST_HASH
-#define CALC_LIST_HASH  strc->arr_hash = calc_hash_arr(strc->arr);  \
-                        strc->list_hash = list_hash(strc);
+#define CALC_LIST_HASH  strc->arr_hash              = MurmurHash1(strc->arr, sizeof(strc->arr), SEED);   \
+                        strc->num_of_free_elem_hash = strc->num_of_free_elem;                      \
+                        strc->head_hash             = strc->head;                                  \
+                        strc->tail_hash             = strc->tail;                                  \
+                        strc->capacity_hash         = strc->capacity;
 #endif
 
 #ifndef CHECK_LIST
@@ -55,21 +58,27 @@ struct List {
     size_t tail;
     size_t capacity;
 
-    unsigned long long list_hash;
-    unsigned long long arr_hash;
+    size_t num_of_free_elem_hash;
+    size_t head_hash;
+    size_t tail_hash;
+    size_t capacity_hash;
+    unsigned arr_hash;
 
     canary_t list_right_canary;
 };
 
 enum LIST_ERRORS{
-    NO_LIST_ERRORS          = 0,
-    VOID_LIST               = 20102,
-    LIST_CANARY_LEFT_ERROR  = 20202,
-    LIST_CANARY_RIGHT_ERROR = 20302,
-    ARR_CANARY_LEFT_ERROR   = 20402,
-    ARR_CANARY_RIGHT_ERROR  = 20502,
-    ARR_HASH_ERROR          = 20602,
-    LIST_HASH_ERROR         = 20702
+    NO_LIST_ERRORS              = 0,
+    VOID_LIST                   = 20102,
+    LIST_CANARY_LEFT_ERROR      = 20202,
+    LIST_CANARY_RIGHT_ERROR     = 20302,
+    ARR_CANARY_LEFT_ERROR       = 20402,
+    ARR_CANARY_RIGHT_ERROR      = 20502,
+    ARR_HASH_ERROR              = 20602,
+    NUM_OF_FREE_ELEM_HASH_ERROR = 20702,
+    HEAD_HASH_ERROR             = 20802,
+    TAIL_HASH_ERROR             = 20902,
+    LIST_CAPACITY_HASH_ERROR    = 201002
 };
 
 const int size_of_list = 10;
@@ -104,9 +113,5 @@ bool isequal(double a, double b);
 void print_list(List *strc);
 int listOK(List *strc);
 void list_dump(List *strc, int error);
-
-unsigned long long calc_hash_arr (const Arr *val);
-unsigned long long calc_hash_size_t_l (const size_t *val);
-unsigned long long list_hash (List *strc);
 
 #endif

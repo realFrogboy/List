@@ -1,4 +1,7 @@
 #include "stack.h"
+#include "hash.h"
+
+const uint32_t SEED = 1; // for hash
 
 extern int DEBUG_LEVEL;
 
@@ -17,6 +20,8 @@ ERRORS stackCtor (Stack* st)
     st->leftCanary = CANARY; 
     st->rightCanary = CANARY;
     PUT_CANARY;
+
+    CALC_HASH;
 
     CHECK_STACK;
 
@@ -38,6 +43,8 @@ ERRORS stackPush (Stack* st, double value)
     
     st->Size++;
 
+    CALC_HASH;
+
     CHECK_STACK;
 
     return NO_ERRORS;
@@ -58,6 +65,8 @@ ERRORS stackPop (Stack* st)
     
     --st->Size;
     PUT_CANARY;
+
+    CALC_HASH;
 
     CHECK_STACK;
 
@@ -99,6 +108,8 @@ ERRORS reallocate (Stack* st, const size_t newSize) //static
         ERROR_INFO(tmp == NULL, "ERROR: Can't realloc memory\n");
 
     PUT_CANARY;
+
+    CALC_HASH;
 
     CHECK_STACK;
 
@@ -176,7 +187,7 @@ void stackDump (int error)
 //-----------------------------------------------------------------------------
 
 
-ERRORS stackOK (const Stack* st, long long hash_data, long long hash_capacity, long long hash_size)
+ERRORS stackOK (const Stack* st)
 {
     if ((DEBUG_LEVEL == 1) || (DEBUG_LEVEL == 2) || (DEBUG_LEVEL == 3))
     {
@@ -193,9 +204,9 @@ ERRORS stackOK (const Stack* st, long long hash_data, long long hash_capacity, l
     }
 
     if (DEBUG_LEVEL == 3) {
-        if (calc_hash_double (st->data) != hash_data) return DATA_HASH_ERROR;
-        if (calc_hash_size_t (&st->capacity) != hash_capacity) return CAPACITY_HASH_ERROR;
-        if (calc_hash_size_t (&st->Size) != hash_size) return SIZE_HASH_ERROR;
+        if (MurmurHash1 (st->data, sizeof(st->data), SEED) != st->data_hash) return DATA_HASH_ERROR;
+        if (st->capacity != st->capacity_hash) return CAPACITY_HASH_ERROR;
+        if (st->Size != st->size_hash) return SIZE_HASH_ERROR;
     }
 
     return NO_ERRORS;
@@ -213,38 +224,4 @@ void prinStack (const Stack* st)
     }
 
     printf ("%ld --- %ld\n", st->Size, st->capacity);
-}
-
-
-//-----------------------------------------------------------------------------
-
-
-long long calc_hash_double (const double *val)  
-{            
-    const int ret_size = 32;
-    long long ret = 0x555555;
-    const int per_char = 7;
-
-    while (*val)
-    {
-        ret ^=*(int*)val++;
-        ret = ((ret << per_char) | (ret >> (ret_size -per_char)));
-    }
-
-    return ret;  
-}
-
-long long calc_hash_size_t (const size_t *val)  
-{            
-    const int ret_size = 32;
-    long long ret = 0x555555;
-    const int per_char = 7;
-
-    while (*val)
-    {
-        ret ^=*val++;
-        ret = ((ret << per_char) | (ret >> (ret_size -per_char)));
-    }
-
-    return ret;  
 }

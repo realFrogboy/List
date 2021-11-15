@@ -1,4 +1,7 @@
 #include "list.h"
+#include "hash.h"
+
+const uint32_t SEED = 2; // for hash
 
 List list_ctor(){
     struct List strc;
@@ -15,11 +18,14 @@ List list_ctor(){
     strc.tail = 0;
     strc.capacity = size_of_list;
 
-    strc.list_left_canary = CANARY;
+    strc.list_left_canary  = CANARY;
     strc.list_right_canary = CANARY;
 
-    strc.arr_hash  = calc_hash_arr(strc.arr);  
-    strc.list_hash = list_hash(&strc);
+    strc.arr_hash               = MurmurHash1(strc.arr, sizeof(strc.arr), SEED);  
+    strc.num_of_free_elem_hash  = strc.num_of_free_elem;
+    strc.head_hash              = strc.head;
+    strc.tail_hash              = strc.tail;
+    strc.capacity_hash          = strc.capacity;
 
     return strc;
 }
@@ -361,32 +367,38 @@ int listOK(List *strc){
     if (*(canary_t*)old_arr != CANARY) return ARR_CANARY_LEFT_ERROR;
     if (*(canary_t*)(strc->arr + strc->capacity + 1) != CANARY) return ARR_CANARY_RIGHT_ERROR;
 
-    if (calc_hash_arr(strc->arr) != strc->arr_hash) return ARR_HASH_ERROR;
-    if (list_hash(strc) != strc->list_hash) return LIST_HASH_ERROR;  //////////////////////////////////////////!?!?!?!?!!?!?!?!?!??!?!???!?!?!
+    if (MurmurHash1(strc->arr, sizeof(strc->arr), SEED) != strc->arr_hash) return ARR_HASH_ERROR;
+    if (strc->head != strc->head_hash) return HEAD_HASH_ERROR;
+    if (strc->num_of_free_elem != strc->num_of_free_elem_hash) return NUM_OF_FREE_ELEM_HASH_ERROR;
+    if (strc->tail != strc->tail_hash) return TAIL_HASH_ERROR;
+    if (strc->capacity != strc->capacity_hash) return LIST_CAPACITY_HASH_ERROR;
 
     return NO_LIST_ERRORS;
 }
 
 void list_dump(List *strc, int error){
     switch (error){
-        case VOID_LIST:
+        case VOID_LIST:{
             printf("\t\tERROR CODE: Void list ptr\n");
             print_list(strc);
             break;
+        }
         
-        case LIST_CANARY_LEFT_ERROR:
+        case LIST_CANARY_LEFT_ERROR:{
             printf("\t\tERROR CODE: Incorrect list left canary\n");
             printf("EXPEXTED VALUE: %lld\n", CANARY);
             printf("RECIEVED VALUE: %lld\n", strc->list_left_canary);
             print_list(strc);
             break;
+        }
         
-        case LIST_CANARY_RIGHT_ERROR:
+        case LIST_CANARY_RIGHT_ERROR:{
             printf("\t\tERROR CODE: Incorrect list right canary\n");
             printf("EXPEXTED VALUE: %lld\n", CANARY);
             printf("RECIEVED VALUE: %lld\n", strc->list_right_canary);
             print_list(strc);
             break;
+        }
 
         case ARR_CANARY_LEFT_ERROR:{
             printf("\t\tERROR CODE: Incorrect arr left canary\n");
@@ -397,60 +409,51 @@ void list_dump(List *strc, int error){
             break;
         }
 
-        case ARR_CANARY_RIGHT_ERROR:
+        case ARR_CANARY_RIGHT_ERROR:{
             printf("\t\tERROR CODE: Incorrect arr right canary\n");
             printf("EXPEXTED VALUE: %lld\n", CANARY);
             printf("RECIEVED VALUE: %lld\n", *(canary_t*)(strc->arr + strc->capacity + 1));
             print_list(strc);
             break;
+        }
         
         case ARR_HASH_ERROR:
             printf("\t\tERROR CODE: Incorrect arr hash\n");
-            printf("EXPEXTED VALUE: %llu\n", strc->arr_hash);
-            printf("RECIEVED VALUE: %llu\n", calc_hash_arr(strc->arr));
+            printf("EXPEXTED VALUE: %u\n", strc->arr_hash);
+            printf("RECIEVED VALUE: %u\n", MurmurHash1(strc->arr, sizeof(strc->arr), SEED));
             print_list(strc);
             break;
         
-        case LIST_HASH_ERROR:
-            printf("\t\tERROR CODE: Incorrect list hash\n");
-            printf("EXPEXTED VALUE: %llu\n", strc->list_hash);
-            printf("RECIEVED VALUE: %llu\n", list_hash(strc));
+        case NUM_OF_FREE_ELEM_HASH_ERROR:{
+            printf("\t\tERROR CODE: Incorrect num_of_free_elem hash\n");
+            printf("EXPEXTED VALUE: %lu\n", strc->num_of_free_elem_hash);
+            printf("RECIEVED VALUE: %lu\n", strc->num_of_free_elem);
             print_list(strc);
             break;
+        }
+
+        case HEAD_HASH_ERROR:{
+            printf("\t\tERROR CODE: Incorrect head hash\n");
+            printf("EXPEXTED VALUE: %lu\n", strc->head_hash);
+            printf("RECIEVED VALUE: %lu\n", strc->head);
+            print_list(strc);
+            break;
+        }
+
+        case TAIL_HASH_ERROR:{
+            printf("\t\tERROR CODE: Incorrect tail hash\n");
+            printf("EXPEXTED VALUE: %lu\n", strc->tail_hash);
+            printf("RECIEVED VALUE: %lu\n", strc->tail);
+            print_list(strc);
+            break;
+        }
+
+        case CAPACITY_HASH_ERROR:{
+            printf("\t\tERROR CODE: Incorrect capacity hash\n");
+            printf("EXPEXTED VALUE: %lu\n", strc->capacity_hash);
+            printf("RECIEVED VALUE: %lu\n", strc->capacity);
+            print_list(strc);
+            break;
+        }
     }
-}
-
-
-//-----------------------------------------------------------------------------
-
-
-unsigned long long calc_hash_arr (const Arr *val){            
-    const int ret_size = 32;
-    long long ret = 0x555555;
-    const int per_char = 7;\
-
-    while (*(int*)val){
-        ret ^=*(int*)val++;
-        ret = ((ret << per_char) | (ret >> (ret_size -per_char)));
-    }
-
-    return ret;  
-}
-
-unsigned long long calc_hash_size_t_l (const size_t *val){            
-    const int ret_size = 32;
-    long long ret = 0x555555;
-    const int per_char = 7;
-
-    while (*val){
-        ret ^=*val++;
-        ret = ((ret << per_char) | (ret >> (ret_size -per_char)));
-    }
-
-    return ret;  
-}
-
-unsigned long long list_hash (List *strc){
-    unsigned long long ret = calc_hash_size_t_l(&strc->num_of_free_elem) + calc_hash_size_t_l(&strc->head) + calc_hash_size_t_l(&strc->tail) + calc_hash_size_t_l(&strc->capacity);
-    return ret;
 }
